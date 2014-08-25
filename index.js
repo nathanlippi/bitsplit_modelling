@@ -69,7 +69,7 @@ function Jackpot(startAmount, prizePercentage, winChanceFormula) {
   }
 
   function getPrizeAmount() {
-    return (betTotal+startAmount)*prizePercentage;
+    return Math.ceil((betTotal+startAmount)*prizePercentage);
   }
 
   // TODO: Keep in mind the house's cut
@@ -130,6 +130,7 @@ while(keepLoopin) {
     //
     // Minimum, Maximum
     // Maximum is now chosen based on 2x prize amount.  Maximum bet may lay outside of that.
+    //
     var betRange = [1, jackpot.getPrizeAmount()*2];
     var bestBet  = 0;
 
