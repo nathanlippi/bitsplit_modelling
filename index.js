@@ -6,7 +6,6 @@ Array.prototype.min = function() {
   return Math.min.apply(null, this);
 };
 
-var numPlayers = 20;
 
 function Jackpot(startAmount, prizePercentage, winChanceFormula) {
   var betTotal        = 0; // Denormalized for convenience
@@ -96,77 +95,83 @@ function Jackpot(startAmount, prizePercentage, winChanceFormula) {
   };
 }
 
+function runSimulation(numPlayers, startAmount, prizePercentage, winChanceFormula) {
+  var keepLoopin = true;
+  var jackpot    = new Jackpot(startAmount, prizePercentage, winChanceFormula);
+
+  var getROIRange = function(betRange) {
+    return betRange.map(function(betAmount) {
+      return jackpot.getROIHypothetical(userId, betAmount);
+    });
+  };
+
+  while(keepLoopin)
+  {
+    var betsPlacedThisRound = 0;
+    for(var userId = 1; userId <= numPlayers; userId++)
+    {
+      var playerName = "player"+userId;
+
+      var currentROI = jackpot.getROI(userId);
+      var betAmount  = 0;
+
+      ////////////////////////////////////////////////////////////////
+      // Try and find an optimal bet for player.  Narrow in on it, binary-search
+      // style.
+      //
+      // Beware that this binary-style search assumes that a curve of bets will
+      // progress smoothly from high to low or low to high chances, and this isn't
+      // necessarily true.  But should get us started.
+      //
+      // Minimum, Maximum
+      // Maximum is now chosen based on 2x prize amount.  Maximum bet may lay outside of that.
+      //
+      var betRange = [1, jackpot.getPrizeAmount()*2];
+      var bestBet  = 0;
+
+      while(betRange[1] - betRange[0] > 1) {
+        var midPointBet    = Math.floor((betRange[0]+betRange[1])/2);
+        var ROIRange       = getROIRange(betRange);
+        var indexToReplace = ROIRange.indexOf(ROIRange.min());
+        betRange[indexToReplace] = midPointBet;
+      }
+
+      ////////////////
+      // Get the best bet out of the two in the range.
+      var ROIRange    = getROIRange(betRange);
+      var maxROI      = ROIRange.max();
+      var maxROIIndex = ROIRange.indexOf(maxROI);
+      var bestBet     = betRange[maxROIIndex];
+
+      if(maxROI > currentROI && maxROI > 0) {
+        jackpot.addBet(userId, bestBet);
+        betsPlacedThisRound++;
+         console.log(playerName, "adding bet: ", bestBet);
+      }
+      else {
+        console.log(playerName, "NOT adding bet.");
+      }
+    }
+
+    console.log("NEXT JACKPOT SIZE RATIO: ", jackpot.getNextJackpotSizeRatio());
+
+    var stopReason;
+    if(jackpot.getNextJackpotSizeRatio() > 20) {
+      keepLoopin = false;
+      stopReason = "next jackpot grew too much...";
+    }
+    else if(betsPlacedThisRound === 0) {
+      keepLoopin = false;
+      stopReason = "no bets placed this round.";
+    }
+    if(!keepLoopin)
+      console.log("Stopping gameplay because ", stopReason);
+  }
+}
+
+var numPlayers       = 20;
 var prizePercentage  = 0.6; // From 0-1
 var startAmount      = 1000;
 var winChanceFormula = "x*x";
 
-var jackpot    = new Jackpot(startAmount, prizePercentage, winChanceFormula);
-var keepLoopin = true;
-
-var getROIRange = function(betRange) {
-  return betRange.map(function(betAmount) {
-    return jackpot.getROIHypothetical(userId, betAmount);
-  });
-};
-
-while(keepLoopin) {
-  var betsPlacedThisRound = 0;
-  for(var userId = 1; userId <= numPlayers; userId++)
-  {
-    var playerName = "player"+userId;
-
-    var currentROI = jackpot.getROI(userId);
-    var betAmount  = 0;
-
-    ////////////////////////////////////////////////////////////////
-    // Try and find an optimal bet for player.  Narrow in on it, binary-search
-    // style.
-    //
-    // Beware that this binary-style search assumes that a curve of bets will
-    // progress smoothly from high to low or low to high chances, and this isn't
-    // necessarily true.  But should get us started.
-    //
-    // Minimum, Maximum
-    // Maximum is now chosen based on 2x prize amount.  Maximum bet may lay outside of that.
-    //
-    var betRange = [1, jackpot.getPrizeAmount()*2];
-    var bestBet  = 0;
-
-    while(betRange[1] - betRange[0] > 1) {
-      var midPointBet    = Math.floor((betRange[0]+betRange[1])/2);
-      var ROIRange       = getROIRange(betRange);
-      var indexToReplace = ROIRange.indexOf(ROIRange.min());
-      betRange[indexToReplace] = midPointBet;
-    }
-
-    ////////////////
-    // Get the best bet out of the two in the range.
-    var ROIRange    = getROIRange(betRange);
-    var maxROI      = ROIRange.max();
-    var maxROIIndex = ROIRange.indexOf(maxROI);
-    var bestBet     = betRange[maxROIIndex];
-
-    if(maxROI > currentROI && maxROI > 0) {
-      jackpot.addBet(userId, bestBet);
-      betsPlacedThisRound++;
-       console.log(playerName, "adding bet: ", bestBet);
-    }
-    else {
-      console.log(playerName, "NOT adding bet.");
-    }
-  }
-
-  console.log("NEXT JACKPOT SIZE RATIO: ", jackpot.getNextJackpotSizeRatio());
-
-  var stopReason;
-  if(jackpot.getNextJackpotSizeRatio() > 20) {
-    keepLoopin = false;
-    stopReason = "next jackpot grew too much...";
-  }
-  else if(betsPlacedThisRound === 0) {
-    keepLoopin = false;
-    stopReason = "no bets placed this round.";
-  }
-  if(!keepLoopin)
-    console.log("Stopping gameplay because ", stopReason);
-}
+runSimulation(numPlayers, startAmount, prizePercentage, winChanceFormula);
