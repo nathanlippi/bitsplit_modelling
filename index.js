@@ -13,8 +13,7 @@ function Jackpot(startAmount, prizePercentage, winChanceFormula) {
   var highestTotalBet = 0;
   var userTotals      = {};
 
-  // TODO: Should use 'x', not 'n'
-  function relativeWinChance(n) {
+  function relativeWinChance(x) {
     return eval(winChanceFormula);
   }
 
@@ -97,10 +96,9 @@ function Jackpot(startAmount, prizePercentage, winChanceFormula) {
   };
 }
 
-// var prizePercentage  = 0.64; // From 0-1
 var prizePercentage  = 0.6; // From 0-1
 var startAmount      = 1000;
-var winChanceFormula = "n*n";
+var winChanceFormula = "x*x";
 
 var jackpot    = new Jackpot(startAmount, prizePercentage, winChanceFormula);
 var keepLoopin = true;
