@@ -7,14 +7,10 @@ Array.prototype.min = function() {
 };
 
 
-function Jackpot(startAmount, prizePercentage, winChanceFormula) {
+function Jackpot(startAmount, prizePercentage, calculateRelativeWinChanceFn) {
   var betTotal        = 0; // Denormalized for convenience
   var highestTotalBet = 0;
   var userTotals      = {};
-
-  function relativeWinChance(x) {
-    return eval(winChanceFormula);
-  }
 
   function addBet(userId, amountInt) {
     var isNonZeroInt = amountInt % 1 === 0 && amountInt !== 0;
@@ -32,9 +28,9 @@ function Jackpot(startAmount, prizePercentage, winChanceFormula) {
     var myWinChance    = 0.0;
     var totalWinChance = 0.0;
 
-    // Iterate through object
+    // Iterate through all user totals
     for (var id in userTotals) {
-      var wc = relativeWinChance(userTotals[id]);
+      var wc = calculateRelativeWinChanceFn(userTotals[id]);
       totalWinChance += wc;
       if(id == userId)
         myWinChance = wc;
@@ -161,6 +157,6 @@ function runSimulation(numPlayers, startAmount, prizePercentage, winChanceFormul
 var numPlayers       = 20;
 var prizePercentage  = 0.6; // From 0-1
 var startAmount      = 1000;
-var winChanceFormula = "x*x";
+var winChanceFn      = function(x) { return x*x; };
 
-runSimulation(numPlayers, startAmount, prizePercentage, winChanceFormula);
+runSimulation(numPlayers, startAmount, prizePercentage, winChanceFn);
