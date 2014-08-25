@@ -80,7 +80,9 @@ function Jackpot(startAmount, prizePercentage, calculateRelativeWinChanceFn) {
   };
 }
 
-function runSimulation(numPlayers, startAmount, prizePercentage, winChanceFormula, suppressOutput) {
+function runSimulation(
+  numPlayers, startAmount, prizePercentage, winChanceFormula, suppressOutput)
+{
   if(typeof suppressOutput === "undefined") {
     suppressOutput = false;
   }
@@ -115,8 +117,15 @@ function runSimulation(numPlayers, startAmount, prizePercentage, winChanceFormul
       // progress smoothly from high to low or low to high chances, and this isn't
       // necessarily true.  But should get us started.
       //
-      // Minimum, Maximum
-      // Maximum is now chosen based on 2x prize amount.  Maximum bet may lay outside of that.
+      // Minimum, Maximum.  Maximum bet is now chosen based on 2x prize amount.
+      // The optimal bet may lay outside of that range.
+      //
+      // Also, beware that ROI can be different from making as much money as
+      // possible.
+      //
+      // For example, these 'rational' players will currently, sometimes, bet 1
+      // satoshis instead of 2, which will increase their theoretical ROI but
+      // will not lead to, on average, making more money.
       //
       var betRange = [1, jackpot.getPrizeAmount()*2];
       var bestBet  = 0;
