@@ -80,7 +80,14 @@ function Jackpot(startAmount, prizePercentage, calculateRelativeWinChanceFn) {
   };
 }
 
-function runSimulation(numPlayers, startAmount, prizePercentage, winChanceFormula) {
+function runSimulation(numPlayers, startAmount, prizePercentage, winChanceFormula, suppressOutput) {
+  if(typeof suppressOutput === "undefined") {
+    suppressOutput = false;
+  }
+  function output() {
+    if(!suppressOutput) console.log.apply(this, arguments);
+  }
+
   var keepLoopin = true;
   var jackpot    = new Jackpot(startAmount, prizePercentage, winChanceFormula);
 
@@ -128,17 +135,18 @@ function runSimulation(numPlayers, startAmount, prizePercentage, winChanceFormul
       var maxROIIndex = ROIRange.indexOf(maxROI);
       var bestBet     = betRange[maxROIIndex];
 
+      output(playerName, "maxROI: ", maxROI);
       if(maxROI > currentROI && maxROI > 0) {
         jackpot.addBet(userId, bestBet);
         betsPlacedThisRound++;
-         console.log(playerName, "adding bet: ", bestBet);
+        output(playerName, "adding bet: ", bestBet);
       }
       else {
-        console.log(playerName, "NOT adding bet.");
+        output(playerName, "NOT adding bet.");
       }
     }
 
-    console.log("NEXT JACKPOT SIZE RATIO: ", jackpot.getNextJackpotSizeRatio());
+    output("NEXT JACKPOT SIZE RATIO: ", jackpot.getNextJackpotSizeRatio());
 
     var stopReason;
     if(jackpot.getNextJackpotSizeRatio() > 20) {
@@ -150,8 +158,9 @@ function runSimulation(numPlayers, startAmount, prizePercentage, winChanceFormul
       stopReason = "no bets placed this round.";
     }
     if(!keepLoopin)
-      console.log("Stopping gameplay because ", stopReason);
+      output("Stopping gameplay because ", stopReason);
   }
+  return jackpot.getNextJackpotSizeRatio();
 }
 
 var numPlayers       = 20;
@@ -159,4 +168,8 @@ var prizePercentage  = 0.6; // From 0-1
 var startAmount      = 1000;
 var winChanceFn      = function(x) { return x*x; };
 
-runSimulation(numPlayers, startAmount, prizePercentage, winChanceFn);
+var suppressOutput   = true;
+var jackpotSizeRatio =
+  runSimulation(numPlayers, startAmount, prizePercentage, winChanceFn, suppressOutput);
+
+console.log("JACKPOT SIZE RATIO: ", jackpotSizeRatio);
