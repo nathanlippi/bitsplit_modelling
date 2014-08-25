@@ -75,19 +75,8 @@ function Jackpot(startAmount, prizePercentage, winChanceFormula) {
     return ((betTotal+startAmount) - getPrizeAmount()) / startAmount;
   }
 
-  function getCallAmount(userId) {
-    var increaseInt = highestTotalBet - getBetAmount(userId);
-    return increaseInt;
-  }
-
-  function getRaiseAmount(userId, raiseAmountInt) {
-    return getCallAmount(userId)+raiseAmountInt;
-  }
-
   return {
     addBet                  : addBet,
-    getCallAmount           : getCallAmount,
-    getRaiseAmount          : getRaiseAmount,
     getPrizeAmount          : getPrizeAmount,
     getROI                  : getROI,
     getROIHypothetical      : getROIHypothetical,
