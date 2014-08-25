@@ -61,9 +61,9 @@ function Jackpot(startAmount, prizePercentage, winChanceFormula) {
 
   function getROIHypothetical(userId, amountIntAdded) {
     addBet(userId, amountIntAdded);    // Temporarily add bet
-    var ROI_hypothetical = getROI(userId);
+    var ROIHypothetical = getROI(userId);
     addBet(userId, -1*amountIntAdded); // Remove bet
-    return ROI_hypothetical;
+    return ROIHypothetical;
   }
 
   function getPrizeAmount() {
