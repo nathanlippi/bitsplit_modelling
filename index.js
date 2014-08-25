@@ -168,8 +168,32 @@ var prizePercentage  = 0.6; // From 0-1
 var startAmount      = 1000;
 var winChanceFn      = function(x) { return x*x; };
 
-var suppressOutput   = true;
-var jackpotSizeRatio =
-  runSimulation(numPlayers, startAmount, prizePercentage, winChanceFn, suppressOutput);
 
-console.log("JACKPOT SIZE RATIO: ", jackpotSizeRatio);
+
+////////////////////////////////////////////////////////////////
+// Simulation of different incentive schemes
+//
+var suppressOutput        = true;
+var numPlayersValues      = [2, 3, 6, 50];
+var prizePercentageValues = [0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95];
+
+var prizePercentage, numPlayers, jackpotSizeRatio;
+for(var jj = 0; jj < prizePercentageValues.length; jj++)
+{
+  prizePercentage = prizePercentageValues[jj];
+  console.log("==============================================");
+  console.log("-------------- PRIZE PERCENTAGE: "+prizePercentage+" ---------");
+  console.log("==============================================");
+
+  for(var ii = 0; ii < numPlayersValues.length; ii++) {
+    numPlayers       = numPlayersValues[ii];
+    jackpotSizeRatio =
+      runSimulation(numPlayers, startAmount, prizePercentage, winChanceFn, suppressOutput);
+
+    console.log("| NUMPLAYERS:", numPlayers);
+    console.log("| ---------------");
+    console.log("| NEXT_JACKPOT RATIO:", jackpotSizeRatio);
+    console.log("| ");
+  }
+  console.log("| ");
+}
