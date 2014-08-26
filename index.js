@@ -94,7 +94,8 @@ function Jackpot(startAmount, prizePercentage, calculateRelativeWinChanceFn) {
 }
 
 function runSimulation(
-  numPlayers, startAmount, prizePercentage, winChanceFormula, suppressOutput)
+  numPlayers, startAmount, prizePercentage, winChanceFormula,
+  playersMaximizeROIOverWinnings, suppressOutput)
 {
   if(typeof suppressOutput === "undefined") {
     suppressOutput = false;
@@ -108,7 +109,10 @@ function runSimulation(
 
   var getROIRange = function(betRange) {
     return betRange.map(function(betAmount) {
-      return jackpot.getAvgROIIfAdd(userId, betAmount);
+      if(playersMaximizeROIOverWinnings) {
+        return jackpot.getAvgROIIfAdd(userId, betAmount);
+      }
+      return jackpot.getAvgWinningsIfAdd(userId, betAmount);
     });
   };
 
@@ -119,7 +123,14 @@ function runSimulation(
     {
       var playerName = "player"+userId;
 
-      var currentROI = jackpot.getAvgROI(userId);
+      var currentROI;
+      if(playersMaximizeROIOverWinnings) {
+        currentROI = jackpot.getAvgROI(userId);
+      }
+      else {
+        currentROI = jackpot.getAvgWinnings(userId, betAmount);
+      }
+
       var betAmount  = 0;
 
       ////////////////////////////////////////////////////////////////
@@ -144,15 +155,16 @@ function runSimulation(
       // We could have 2 types of players (separate or mixed in the simulation):
       //
       // X -- Ones who try to optimize for percentage won.
-      //   -- Ones who try to optimize for money won.
+      // X -- Ones who try to optimize for money won.
       //
       var betRange = [1, jackpot.getPrizeAmount()*2];
-      var bestBet  = 0;
-
-      while(betRange[1] - betRange[0] > 1) {
+      while(true) {
         var midPointBet    = Math.floor((betRange[0]+betRange[1])/2);
         var ROIRange       = getROIRange(betRange);
         var indexToReplace = ROIRange.indexOf(ROIRange.min());
+
+        if(betRange[indexToReplace] === midPointBet) break;
+
         betRange[indexToReplace] = midPointBet;
       }
 
@@ -191,19 +203,15 @@ function runSimulation(
   return jackpot.getThisJackpotToNextJackpotSizeRatio();
 }
 
-var numPlayers       = 20;
-var prizePercentage  = 0.6; // From 0-1
-var startAmount      = 1000;
-var winChanceFn      = function(x) { return x*x; };
-
-
 
 ////////////////////////////////////////////////////////////////
 // Simulation of different incentive schemes
 //
+var winChanceFn           = function(x) { return x*x; };
+var startAmount           = 10000;
 var suppressOutput        = true;
 var numPlayersValues      = [2, 3, 6, 50];
-var prizePercentageValues = [0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95];
+var prizePercentageValues = [0.4, 0.5, 0.6, 0.65, 0.7, 0.8, 0.9, 0.95];
 
 var prizePercentage, numPlayers, jackpotSizeRatio;
 for(var jj = 0; jj < prizePercentageValues.length; jj++)
@@ -215,12 +223,20 @@ for(var jj = 0; jj < prizePercentageValues.length; jj++)
 
   for(var ii = 0; ii < numPlayersValues.length; ii++) {
     numPlayers       = numPlayersValues[ii];
-    jackpotSizeRatio =
-      runSimulation(numPlayers, startAmount, prizePercentage, winChanceFn, suppressOutput);
 
     console.log("| NUMPLAYERS:", numPlayers);
     console.log("| ---------------");
-    console.log("| NEXT_JACKPOT RATIO:", jackpotSizeRatio);
+
+    var pursueWhat = [{pursueROI: true,  text: "  ROI   "},
+                      {pursueROI: false, text: "WINNINGS"}];
+
+    for(var kk = 0; kk < pursueWhat.length; kk++)
+    {
+      var obj = pursueWhat[kk];
+      jackpotSizeRatio = runSimulation(numPlayers, startAmount, prizePercentage, winChanceFn, obj.pursueROI, suppressOutput);
+
+      console.log("| NEXT_JACKPOT RATIO ("+obj.text+"):", jackpotSizeRatio);
+    }
     console.log("| ");
   }
   console.log("| ");
