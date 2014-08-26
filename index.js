@@ -207,10 +207,11 @@ function runSimulation(
 ////////////////////////////////////////////////////////////////
 // Simulation of different incentive schemes
 //
-var winChanceFn           = function(x) { return x*x; };
-var startAmount           = 10000;
+var winChanceFn           =
+  function(x) { return Math.pow(x, 2);};
+var startAmount           = 1000;
 var suppressOutput        = true;
-var numPlayersValues      = [2, 3, 6, 50];
+var numPlayersValues      = [2, 3, 6, 50, 200];
 var prizePercentageValues = [0.4, 0.5, 0.6, 0.65, 0.7, 0.8, 0.9, 0.95];
 
 var prizePercentage, numPlayers, jackpotSizeRatio;
