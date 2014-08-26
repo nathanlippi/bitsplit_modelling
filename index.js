@@ -46,17 +46,30 @@ function Jackpot(startAmount, prizePercentage, calculateRelativeWinChanceFn) {
     return betAmount;
   }
 
-  function getROI(userId) {
-    var betAmount = getBetAmount(userId);
-
-    if(betAmount === 0) return 0;
-
-    return (getWinChance(userId)*getPrizeAmount() - betAmount)/betAmount;
+  function getROIPercentage(userId) {
+    if(getBetAmount(userId) === 0) return 0;
+    return getROIAmount(userId)/getBetAmount(userId);
+  }
+  function getROIAmount(userId) {
+    if(getBetAmount(userId) === 0) return 0;
+    return getWinChance(userId)*getPrizeAmount() - getBetAmount(userId);
   }
 
-  function getROIHypothetical(userId, amountIntAdded) {
+  function getROIPercentageHypothetical(userId, amountIntAdded) {
+    return getROIHypothetical(userId, amountIntAdded, true);
+  }
+  function getROIAmountHypothetical(userId, amountIntAdded) {
+    return getROIHypothetical(userId, amountIntAdded, false);
+  }
+  function getROIHypothetical(userId, amountIntAdded, isPercentage) {
     addBet(userId, amountIntAdded);    // Temporarily add bet
-    var ROIHypothetical = getROI(userId);
+
+    var ROIHypothetical;
+    if(isPercentage) {
+      ROIHypothetical = getROIPercentage(userId); }
+    else {
+      ROIHypothetical = getROIAmount(userId); }
+
     addBet(userId, -1*amountIntAdded); // Remove bet
     return ROIHypothetical;
   }
@@ -71,11 +84,11 @@ function Jackpot(startAmount, prizePercentage, calculateRelativeWinChanceFn) {
   }
 
   return {
-    addBet                  : addBet,
-    getPrizeAmount          : getPrizeAmount,
-    getROI                  : getROI,
-    getROIHypothetical      : getROIHypothetical,
-    getNextJackpotSizeRatio : getNextJackpotSizeRatio
+    addBet                       : addBet,
+    getPrizeAmount               : getPrizeAmount,
+    getROI                       : getROIPercentage,
+    getROIHypothetical           : getROIPercentageHypothetical,
+    getNextJackpotSizeRatio      : getNextJackpotSizeRatio
   };
 }
 
