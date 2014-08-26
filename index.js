@@ -27,7 +27,6 @@ function Jackpot(startAmount, prizePercentage, calculateRelativeWinChanceFn) {
     var myWinChance    = 0.0;
     var totalWinChance = 0.0;
 
-    // Iterate through all user totals
     for (var id in userTotals) {
       var wc = calculateRelativeWinChanceFn(userTotals[id]);
       totalWinChance += wc;
@@ -35,7 +34,7 @@ function Jackpot(startAmount, prizePercentage, calculateRelativeWinChanceFn) {
         myWinChance = wc;
     }
 
-    if(myWinChance === 0) return 0; // Avoid div by zero
+    if(myWinChance === 0) return 0; // Avoid division by zero
     return myWinChance / totalWinChance;
   }
 
@@ -46,32 +45,32 @@ function Jackpot(startAmount, prizePercentage, calculateRelativeWinChanceFn) {
     return betAmount;
   }
 
-  function getROIPercentage(userId) {
-    if(getBetAmount(userId) === 0) return 0;
-    return getROIAmount(userId)/getBetAmount(userId);
-  }
-  function getROIAmount(userId) {
+  function getAvgWinnings(userId) {
     if(getBetAmount(userId) === 0) return 0;
     return getWinChance(userId)*getPrizeAmount() - getBetAmount(userId);
   }
-
-  function getROIPercentageHypothetical(userId, amountIntAdded) {
-    return getROIHypothetical(userId, amountIntAdded, true);
+  function getAvgROI(userId) {
+    if(getBetAmount(userId) === 0) return 0;
+    return getAvgWinnings(userId)/getBetAmount(userId);
   }
-  function getROIAmountHypothetical(userId, amountIntAdded) {
-    return getROIHypothetical(userId, amountIntAdded, false);
+
+  function getAvgROIIfAdd(userId, amountIntAdded) {
+    return getAvgIfAdd(userId, amountIntAdded, true);
   }
-  function getROIHypothetical(userId, amountIntAdded, isPercentage) {
-    addBet(userId, amountIntAdded);    // Temporarily add bet
+  function getAvgWinningsIfAdd(userId, amountIntAdded) {
+    return getAvgIfAdd(userId, amountIntAdded, false);
+  }
+  function getAvgIfAdd(userId, amountIntAdded, isROI) {
+    // Temporarily add bet
+    addBet(userId, amountIntAdded);
 
-    var ROIHypothetical;
-    if(isPercentage) {
-      ROIHypothetical = getROIPercentage(userId); }
-    else {
-      ROIHypothetical = getROIAmount(userId); }
+    var avg;
+    if(isROI) { avg = getAvgROI(userId); }
+    else { avg = getAvgWinnings(userId); }
 
-    addBet(userId, -1*amountIntAdded); // Remove bet
-    return ROIHypothetical;
+    // Remove bet
+    addBet(userId, -1*amountIntAdded);
+    return avg;
   }
 
   function getPrizeAmount() {
@@ -79,16 +78,16 @@ function Jackpot(startAmount, prizePercentage, calculateRelativeWinChanceFn) {
   }
 
   // TODO: Keep in mind the house's cut
-  function getNextJackpotSizeRatio() {
+  function getThisJackpotToNextJackpotSizeRatio() {
     return ((betTotal+startAmount) - getPrizeAmount()) / startAmount;
   }
 
   return {
-    addBet                       : addBet,
-    getPrizeAmount               : getPrizeAmount,
-    getROI                       : getROIPercentage,
-    getROIHypothetical           : getROIPercentageHypothetical,
-    getNextJackpotSizeRatio      : getNextJackpotSizeRatio
+    addBet                               : addBet,
+    getPrizeAmount                       : getPrizeAmount,
+    getAvgROI                            : getAvgROI,
+    getAvgROIIfAdd                       : getAvgROIIfAdd,
+    getThisJackpotToNextJackpotSizeRatio : getThisJackpotToNextJackpotSizeRatio
   };
 }
 
@@ -107,7 +106,7 @@ function runSimulation(
 
   var getROIRange = function(betRange) {
     return betRange.map(function(betAmount) {
-      return jackpot.getROIHypothetical(userId, betAmount);
+      return jackpot.getAvgROIIfAdd(userId, betAmount);
     });
   };
 
@@ -118,7 +117,7 @@ function runSimulation(
     {
       var playerName = "player"+userId;
 
-      var currentROI = jackpot.getROI(userId);
+      var currentROI = jackpot.getAvgROI(userId);
       var betAmount  = 0;
 
       ////////////////////////////////////////////////////////////////
@@ -173,10 +172,10 @@ function runSimulation(
       }
     }
 
-    output("NEXT JACKPOT SIZE RATIO: ", jackpot.getNextJackpotSizeRatio());
+    output("NEXT JACKPOT SIZE RATIO: ", jackpot.getThisJackpotToNextJackpotSizeRatio());
 
     var stopReason;
-    if(jackpot.getNextJackpotSizeRatio() > 20) {
+    if(jackpot.getThisJackpotToNextJackpotSizeRatio() > 20) {
       keepLoopin = false;
       stopReason = "next jackpot grew too much...";
     }
@@ -187,7 +186,7 @@ function runSimulation(
     if(!keepLoopin)
       output("Stopping gameplay because ", stopReason);
   }
-  return jackpot.getNextJackpotSizeRatio();
+  return jackpot.getThisJackpotToNextJackpotSizeRatio();
 }
 
 var numPlayers       = 20;
