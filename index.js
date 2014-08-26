@@ -6,7 +6,6 @@ Array.prototype.min = function() {
   return Math.min.apply(null, this);
 };
 
-
 function Jackpot(startAmount, prizePercentage, calculateRelativeWinChanceFn) {
   var betTotal        = 0; // Denormalized for convenience
   var highestTotalBet = 0;
@@ -114,8 +113,8 @@ function runSimulation(
       // style.
       //
       // Beware that this binary-style search assumes that a curve of bets will
-      // progress smoothly from high to low or low to high chances, and this isn't
-      // necessarily true.  But should get us started.
+      // progress smoothly from high to low or low to high chances, and this
+      // isn't necessarily true.  But should get us started.
       //
       // Minimum, Maximum.  Maximum bet is now chosen based on 2x prize amount.
       // The optimal bet may lay outside of that range.
@@ -124,8 +123,14 @@ function runSimulation(
       // possible.
       //
       // For example, these 'rational' players will currently, sometimes, bet 1
-      // satoshis instead of 2, which will increase their theoretical ROI but
-      // will not lead to, on average, making more money.
+      // satoshis instead of 2, which will keep them at a higher percentage ROI
+      // but will lead to, on average, making less money.
+      //
+      //
+      // We could have 2 types of players (separate or mixed in the simulation):
+      //
+      // X -- Ones who try to optimize for percentage won.
+      //   -- Ones who try to optimize for money won.
       //
       var betRange = [1, jackpot.getPrizeAmount()*2];
       var bestBet  = 0;
