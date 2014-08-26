@@ -87,6 +87,8 @@ function Jackpot(startAmount, prizePercentage, calculateRelativeWinChanceFn) {
     getPrizeAmount                       : getPrizeAmount,
     getAvgROI                            : getAvgROI,
     getAvgROIIfAdd                       : getAvgROIIfAdd,
+    getAvgWinnings                       : getAvgWinnings,
+    getAvgWinningsIfAdd                  : getAvgWinningsIfAdd,
     getThisJackpotToNextJackpotSizeRatio : getThisJackpotToNextJackpotSizeRatio
   };
 }
